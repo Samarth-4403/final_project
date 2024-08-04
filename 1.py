@@ -15,15 +15,15 @@ csv_files = [
 
 # Connect to the MySQL database
 conn = mysql.connector.connect(
-    host='your_host',
-    user='your_username',
-    password='your_password',
-    database='your_database'
+    host='localhost',
+    user='root',
+    password='alka04parija',
+    database='ecommerce'
 )
 cursor = conn.cursor()
 
 # Folder containing the CSV files
-folder_path = 'path_to_your_folder'
+folder_path = 'C:/Users/samar/final_project'
 
 def get_sql_type(dtype):
     if pd.api.types.is_integer_dtype(dtype):

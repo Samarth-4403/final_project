@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import mysql.connector
+import numpy as np
 
 db = mysql.connector.connect(host = "localhost",
                              username = "root",
@@ -29,8 +30,8 @@ data = cur.fetchall()
 "total orders placed in 2017 are", data[0][0]
 
 # Finding the total sales per category
-query = """ select products.product_category category, 
-sum(payments.payment_value) sales
+query = """ select upper(products.product_category) category, 
+round(sum(payments.payment_value),2) sales
 from products join order_items 
 on products.product_id = order_items.product_id
 join payments
@@ -109,3 +110,34 @@ cur.execute(query)
 data = cur.fetchall()
 df = pd.DataFrame(data, columns = {"customer city", "average products/order"})
 df.head(10)
+
+# Calculate the percentage of total revenue contributed by each product category
+query = """ select upper(products.product_category) category, 
+round((sum(payments.payment_value)/(select sum(payment_value) from payments))*100,2) sales_percentage
+from products join order_items 
+on products.product_id = order_items.product_id
+join payments
+on payments.order_id = order_items.order_id
+group by category order by sales_percentage desc """
+
+cur.execute(query)
+
+df = pd.DataFrame(data, columns = ["Category", "percentage distribution"])
+df.head(5)
+
+# Identify the correlation between product price and the number of times a product has been purchased
+query = """ select products.product_category,
+count(order_items.product_id),
+from products join order_items
+on products.product_id = order_items.product_id
+group by products.product_category """
+
+cur.execute(query)
+data = cur.fetchall()
+df = pd.DataFrame(data, columns = ["Category", "order_count", "price"])
+
+arr1 = df["order_count"]
+arr2 = df["price"]
+
+a = np.corrcoef([arr1,arr2])
+print("the correlation between price and number of times a product has been purchased", a[0][1])
